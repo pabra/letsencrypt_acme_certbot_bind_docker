@@ -1,0 +1,69 @@
+---
+x-base-image: &base-image alpine:3.22.1
+x-bind-version: &bind-version 9.20.11-r0
+x-certbot-version: &certbot-version 4.0.0-r0
+
+services:
+  certbot:
+    build:
+      context: certbot
+      args:
+        BASE_IMAGE: *base-image
+        BIND_VERSION: *bind-version
+        CERTBOT_VERSION: *certbot-version
+    image: pabra/certbot:latest
+    container_name: certbot
+    init: true
+    environment:
+      CHALLENGE_ZONE: ${CHALLENGE_ZONE:?CHALLENGE_ZONE not set}
+      ACME_CONTACT: ${ACME_CONTACT}
+      ACME_SERVER: ${ACME_SERVER:?ACME_SERVER not set}
+    depends_on:
+      bind9:
+        condition: service_healthy
+    volumes:
+      - type: volume
+        source: tsig_keys
+        target: /keys
+        read_only: true
+      - type: bind
+        source: ./certs
+        target: /certs
+      - type: bind
+        source: ./accounts
+        target: /tmp/config/accounts
+    networks:
+      - bind9-net
+    tty: true
+
+  bind9:
+    build:
+      context: bind9
+      args:
+        BASE_IMAGE: *base-image
+        BIND_VERSION: *bind-version
+    image: pabra/bind9:latest
+    container_name: bind9
+    init: true
+    environment:
+      CHALLENGE_ZONE: ${CHALLENGE_ZONE:?CHALLENGE_ZONE not set}
+      CHALLENGE_NS: ${CHALLENGE_NS:?CHALLENGE_NS not set}
+      TSIG_KEY_NAME: ${TSIG_KEY_NAME:?TSIG_KEY_NAME not set}
+      TSIG_KEY_ALGORITHM: ${TSIG_KEY_ALGORITHM:?TSIG_KEY_ALGORITHM not set}
+    ports:
+      - "${BIND_ADDRESS:?BIND_ADDRESS not set}:53:53/tcp"
+      - "${BIND_ADDRESS:?BIND_ADDRESS not set}:53:53/udp"
+    volumes:
+      - type: volume
+        source: tsig_keys
+        target: /var/bind/keys
+    networks:
+      - bind9-net
+
+networks:
+  bind9-net:
+    name: ${DNS_NETWORK_NAME:-dns}
+
+volumes:
+  tsig_keys:
+    name: ${TSIG_VOLUME_NAME:-tsig_keys}

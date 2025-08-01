@@ -1,0 +1,8 @@
+.env
+*.gitignore.*
+
+certs/*
+accounts/*
+
+!certs/.empty
+!accounts/.empty
