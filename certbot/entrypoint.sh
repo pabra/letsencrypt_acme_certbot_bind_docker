@@ -121,10 +121,11 @@ ensure_rsa_key() {
     if [ ! -e "$file_path" ]; then
         echo "generating new key: '$file_path'"
         openssl genrsa "$bits" >"$file_path"
-        pretty_key "$file_path"
     else
         echo "key already exists: '$file_path'"
     fi
+
+    pretty_key "$file_path"
 }
 
 ensure_domain_config() {
@@ -147,6 +148,7 @@ ensure_domain_config() {
 
     if [ -e "$csr_file" ]; then
         echo "CSR file '$csr_file' already exists. Delete it first to generate a new/updated one."
+        pretty_csr "$csr_file"
         return 0
     fi
 
