@@ -2,14 +2,13 @@
 
 set -e
 
-echo "CERTBOT_DOMAIN: ${CERTBOT_DOMAIN}"
-echo "CERTBOT_VALIDATION: ${CERTBOT_VALIDATION}"
+echo "add validation ${CERTBOT_VALIDATION} for domain ${CERTBOT_DOMAIN}"
 
 # exit 1
 
 {
     cat <<EOT
-update add _acme-challenge.${CHALLENGE_ZONE}. 300 TXT "${CERTBOT_VALIDATION}"
+update add _acme-challenge.${CHALLENGE_ZONE}. 10 TXT "${CERTBOT_VALIDATION}"
 send
 EOT
 } | nsupdate -k /keys/acme_key # -d
