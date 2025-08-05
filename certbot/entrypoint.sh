@@ -8,8 +8,6 @@ certbot() {
     # $2 - cmd
     # $3 - csr path
     # $4 - cert path
-    # $5 - chain path
-    # $6 - fullchain path
     local certbot_args=(
         '--logs-dir' './logs'
         '--work-dir' './work'
@@ -37,8 +35,6 @@ certbot() {
             '--non-interactive'
             '--csr' "$3"
             '--cert-path' "$4"
-            '--chain-path' "$5"
-            '--fullchain-path' "$6"
             '--preferred-challenges' 'dns'
             '--manual-auth-hook' 'authenticator.sh'
             '--manual-cleanup-hook' 'cleanup.sh'
@@ -217,21 +213,13 @@ request_cert() {
     local base_name
     base_name=$(basename "$csr_file" | sed 's/\.csr//')
     local tmp_cert=/tmp/cert
-    local tmp_chain=/tmp/chain
-    local tmp_fullchain=/tmp/fullchain
     local cert_file
-    local chain_file
-    local fullchain_file
     local res
 
     if [ "$acme_server" = 'production' ]; then
         cert_file="/certs/${base_name}.pem"
-        chain_file="/certs/${base_name}.chain.pem"
-        fullchain_file="/certs/${base_name}.fullchain.pem"
     else
         cert_file="/certs/${base_name}.staging.pem"
-        chain_file="/certs/${base_name}.chain.staging.pem"
-        fullchain_file="/certs/${base_name}.fullchain.staging.pem"
     fi
 
     if [ ! -e "$csr_file" ]; then
@@ -239,11 +227,9 @@ request_cert() {
         exit 1
     fi
 
-    res=$(certbot "$acme_server" 'get_cert' "$csr_file" "$tmp_cert" "$tmp_chain" "$tmp_fullchain")
+    res=$(certbot "$acme_server" 'get_cert' "$csr_file" "$tmp_cert")
     if [ "$res" = 'Ok' ]; then
         cp "$tmp_cert" "$cert_file"
-        cp "$tmp_chain" "$chain_file"
-        cp "$tmp_fullchain" "$fullchain_file"
         pretty_cert "$cert_file"
         unlink "$tmp_cert"
     fi
