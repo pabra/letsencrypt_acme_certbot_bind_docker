@@ -34,7 +34,7 @@ certbot() {
             'certonly' '--manual'
             '--non-interactive'
             '--csr' "$3"
-            '--cert-path' "$4"
+            '--fullchain-path' "$4"
             '--preferred-challenges' 'dns'
             '--manual-auth-hook' 'authenticator.sh'
             '--manual-cleanup-hook' 'cleanup.sh'
